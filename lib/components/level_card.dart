@@ -29,7 +29,7 @@ class level_card extends StatelessWidget {
     return Stack(
       children: [
         Container(
-          margin: const EdgeInsets.only(top: 70.0),
+          margin: const EdgeInsets.only(top: 50.0),
           child: Material(
             elevation: 5.0,
             borderRadius: BorderRadius.circular(30),

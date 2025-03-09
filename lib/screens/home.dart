@@ -63,7 +63,7 @@ class _HomeState extends State<Home> {
                     child: const level_card(
                       levelText: "Level 1",
                       titleText: "Travel newbie",
-                      image: "images/travel_bag.png",
+                      image: "images/travel_bag1.png",
                       icon: Icons.done,
                       color1: Color(0xFFEF729E),
                       color2: Color(0xFFEC7C86),
