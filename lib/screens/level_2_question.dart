@@ -1,6 +1,7 @@
 import 'package:flashcard_quiz1/components/cross_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flashcard_quiz1/components/options.dart';
+import 'dart:async';
 
 class level_2_question extends StatefulWidget {
   const level_2_question({super.key});
@@ -10,6 +11,27 @@ class level_2_question extends StatefulWidget {
 }
 
 class _level_2_questionState extends State<level_2_question> {
+  int currentQuestion = 1;
+  String correctAnswer = "Hamburg";
+  String? selectedAnswer;
+
+  void checkAnswer(String answer) {
+    setState(() {
+      selectedAnswer = answer;
+    });
+
+    Future.delayed(const Duration(seconds: 1), () {
+      setState(() {
+        if (currentQuestion < 10) {
+          currentQuestion++;
+          selectedAnswer = null;
+        } else {
+          Navigator.pop(context);
+        }
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,7 +52,7 @@ class _level_2_questionState extends State<level_2_question> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 GestureDetector(
-                  onTap: (){
+                  onTap: () {
                     Navigator.pop(context);
                   },
                   child: const cross_icon(),
@@ -41,9 +63,9 @@ class _level_2_questionState extends State<level_2_question> {
                     border: Border.all(color: Colors.white, width: 2.0),
                     shape: BoxShape.circle,
                   ),
-                  child: const Text(
-                    "01",
-                    style: TextStyle(
+                  child: Text(
+                    "$currentQuestion",
+                    style: const TextStyle(
                         color: Colors.white,
                         fontSize: 22.0,
                         fontWeight: FontWeight.bold),
@@ -76,30 +98,46 @@ class _level_2_questionState extends State<level_2_question> {
                 )
               ],
             ),
-            const SizedBox(
-              height: 30.0,
-            ),
+            const SizedBox(height: 30.0),
             Image.asset("images/ship.png"),
-            const Text(
-              "Question 5 of 10",
-              style: TextStyle(
+            Text(
+              "Question $currentQuestion of 10",
+              style: const TextStyle(
                   color: Color(0xFFFFFFE6),
                   fontSize: 22.0,
                   fontWeight: FontWeight.w500),
             ),
             const Text(
-              "Q: in which city of Germany is the largest port?",
+              "Q: In which city of Germany is the largest port?",
               style: TextStyle(
                   color: Colors.white,
                   fontSize: 28.0,
                   fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 30.0),
-            const options(optionText: "Bremen"),
+            Options(
+              optionText: "Bremen",
+              color: selectedAnswer == "Bremen"
+                  ? (correctAnswer == "Bremen" ? Colors.green : Colors.red)
+                  : Colors.white,
+              onTap: () => checkAnswer("Bremen"),
+            ),
             const SizedBox(height: 30.0),
-            const options(optionText: "Hamburg"),
+            Options(
+              optionText: "Hamburg",
+              color: selectedAnswer == "Hamburg"
+                  ? (correctAnswer == "Hamburg" ? Colors.green : Colors.red)
+                  : Colors.white,
+              onTap: () => checkAnswer("Hamburg"),
+            ),
             const SizedBox(height: 30.0),
-            const options(optionText: "Hesse"),
+            Options(
+              optionText: "Hesse",
+              color: selectedAnswer == "Hesse"
+                  ? (correctAnswer == "Hesse" ? Colors.green : Colors.red)
+                  : Colors.white,
+              onTap: () => checkAnswer("Hesse"),
+            ),
           ],
         ),
       ),

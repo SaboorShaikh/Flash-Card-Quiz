@@ -1,202 +1,130 @@
 import 'package:flutter/material.dart';
 import 'package:flashcard_quiz1/components/db_helper.dart';
-import 'package:flashcard_quiz1/components/cross_icon.dart';
 
-class AddQuestionScreen extends StatefulWidget {
-  const AddQuestionScreen({super.key});
-
+class AddQuestionsScreen extends StatefulWidget {
   @override
-  _AddQuestionScreenState createState() => _AddQuestionScreenState();
+  _AddQuestionsScreenState createState() => _AddQuestionsScreenState();
 }
 
-class _AddQuestionScreenState extends State<AddQuestionScreen> {
+class _AddQuestionsScreenState extends State<AddQuestionsScreen> {
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _questionController = TextEditingController();
   final TextEditingController _option1Controller = TextEditingController();
   final TextEditingController _option2Controller = TextEditingController();
   final TextEditingController _option3Controller = TextEditingController();
-  final TextEditingController _correctOptionController = TextEditingController();
-  int _selectedLevel = 1;
+  String? _correctOption;
+  int _selectedLevel = 1; // Default level
 
   void _saveQuestion() async {
-    String question = _questionController.text.trim();
-    String option1 = _option1Controller.text.trim();
-    String option2 = _option2Controller.text.trim();
-    String option3 = _option3Controller.text.trim();
-    String correctOption = _correctOptionController.text.trim();
+    if (_formKey.currentState!.validate() && _correctOption != null) {
+      Map<String, dynamic> newQuestion = {
+        'question': _questionController.text,
+        'option1': _option1Controller.text,
+        'option2': _option2Controller.text,
+        'option3': _option3Controller.text,
+        'correctOption': _correctOption,
+        'level': _selectedLevel,
+      };
 
-    if (question.isEmpty ||
-        option1.isEmpty ||
-        option2.isEmpty ||
-        option3.isEmpty ||
-        correctOption.isEmpty) {
+      await DatabaseHelper.insertQuestion(newQuestion);
+
+      // Clear fields after adding a question
+      _questionController.clear();
+      _option1Controller.clear();
+      _option2Controller.clear();
+      _option3Controller.clear();
+      setState(() {
+        _correctOption = null;
+        _selectedLevel = 1;
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please fill all fields")),
+        SnackBar(content: Text('Question added successfully!')),
       );
-      return;
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please fill all fields and select the correct answer')),
+      );
     }
-
-    await DatabaseHelper.insertQuestion(
-        question, option1, option2, option3, correctOption, _selectedLevel);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Question added successfully!")),
-    );
-
-    // Clear input fields after saving
-    _questionController.clear();
-    _option1Controller.clear();
-    _option2Controller.clear();
-    _option3Controller.clear();
-    _correctOptionController.clear();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: MediaQuery.of(context).size.width,
-        padding: const EdgeInsets.only(top: 60.0, left: 20.0, right: 20.0),
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(colors: [
-            Color(0xFF348EF2),
-            Color(0xFF4183F1),
-            Color(0xFF5177EE),
-          ], begin: Alignment.topLeft, end: Alignment.bottomRight),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Top Row with back button
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: const cross_icon(),
-                ),
-                const Text(
-                  "Add Question",
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 22.0,
-                      fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(width: 40), // Placeholder for symmetry
-              ],
-            ),
-            const SizedBox(height: 30.0),
-
-            // Question input field
-            buildTextField("Enter Question", _questionController),
-
-            const SizedBox(height: 20.0),
-            const Text(
-              "Options",
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18.0,
-                  fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10.0),
-
-            // Options input fields
-            buildTextField("Option 1", _option1Controller),
-            buildTextField("Option 2", _option2Controller),
-            buildTextField("Option 3", _option3Controller),
-            buildTextField("Correct Option", _correctOptionController),
-
-            const SizedBox(height: 20.0),
-            const Text(
-              "Select Level",
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18.0,
-                  fontWeight: FontWeight.bold),
-            ),
-
-            // Level selection dropdown
-            Container(
-              margin: const EdgeInsets.only(top: 10.0),
-              padding: const EdgeInsets.symmetric(horizontal: 15.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(15),
+      appBar: AppBar(title: Text('Add Question')),
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextFormField(
+                controller: _questionController,
+                decoration: InputDecoration(labelText: 'Enter Question'),
+                validator: (value) => value!.isEmpty ? 'Question cannot be empty' : null,
               ),
-              child: DropdownButton<int>(
+              TextFormField(
+                controller: _option1Controller,
+                decoration: InputDecoration(labelText: 'Option 1'),
+                validator: (value) => value!.isEmpty ? 'Option cannot be empty' : null,
+              ),
+              TextFormField(
+                controller: _option2Controller,
+                decoration: InputDecoration(labelText: 'Option 2'),
+                validator: (value) => value!.isEmpty ? 'Option cannot be empty' : null,
+              ),
+              TextFormField(
+                controller: _option3Controller,
+                decoration: InputDecoration(labelText: 'Option 3'),
+                validator: (value) => value!.isEmpty ? 'Option cannot be empty' : null,
+              ),
+              SizedBox(height: 10),
+
+              // Select Correct Answer
+              Text('Select Correct Answer:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              Column(
+                children: ['option1', 'option2', 'option3'].map((option) {
+                  return RadioListTile<String>(
+                    title: Text(option.replaceAll('option', 'Option ')),
+                    value: option,
+                    groupValue: _correctOption,
+                    onChanged: (value) {
+                      setState(() {
+                        _correctOption = value;
+                      });
+                    },
+                  );
+                }).toList(),
+              ),
+
+              SizedBox(height: 10),
+
+              // Select Level
+              Text('Select Difficulty Level:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              DropdownButton<int>(
                 value: _selectedLevel,
                 onChanged: (value) {
                   setState(() {
                     _selectedLevel = value!;
                   });
                 },
-                items: [1, 2, 3].map((level) {
-                  return DropdownMenuItem<int>(
-                    value: level,
-                    child: Text(
-                      "Level $level",
-                      style: const TextStyle(
-                          color: Colors.black, fontWeight: FontWeight.bold),
-                    ),
-                  );
-                }).toList(),
-                isExpanded: true,
-                underline: const SizedBox(),
+                items: [
+                  DropdownMenuItem(value: 1, child: Text('Level 1 - Easy')),
+                  DropdownMenuItem(value: 2, child: Text('Level 2 - Medium')),
+                  DropdownMenuItem(value: 3, child: Text('Level 3 - Hard')),
+                ],
               ),
-            ),
 
-            const SizedBox(height: 40.0),
-
-            // Save button
-            GestureDetector(
-              onTap: _saveQuestion,
-              child: Container(
-                height: 60.0,
-                width: MediaQuery.of(context).size.width,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(15),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black26.withOpacity(0.3),
-                      spreadRadius: 3,
-                      blurRadius: 5,
-                      offset: const Offset(2, 4),
-                    )
-                  ],
-                ),
-                child: const Center(
-                  child: Text(
-                    "Save Question",
-                    style: TextStyle(
-                      color: Color(0xFF5177EE),
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+              SizedBox(height: 20),
+              Center(
+                child: ElevatedButton(
+                  onPressed: _saveQuestion,
+                  child: Text('Save Question'),
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Custom Input Field
-  Widget buildTextField(String label, TextEditingController controller) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 15.0),
-      padding: const EdgeInsets.symmetric(horizontal: 15.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: TextField(
-        controller: controller,
-        decoration: InputDecoration(
-          border: InputBorder.none,
-          labelText: label,
-          labelStyle: const TextStyle(color: Colors.black54),
+            ],
+          ),
         ),
       ),
     );

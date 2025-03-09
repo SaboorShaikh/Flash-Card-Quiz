@@ -1,24 +1,37 @@
 import 'package:flutter/material.dart';
 
-class options extends StatelessWidget {
-  const options({super.key, required this.optionText});
-
+class Options extends StatelessWidget {
   final String optionText;
+  final Color color;
+  final VoidCallback onTap;
+
+  const Options({
+    Key? key,
+    required this.optionText,
+    this.color = Colors.white,
+    required this.onTap,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: MediaQuery.of(context).size.width,
-      padding: const EdgeInsets.symmetric(vertical: 10.0),
-      decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(20.0)),
-      child: Center(
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.7),
+          borderRadius: BorderRadius.circular(12.0),
+          border: Border.all(color: Colors.white, width: 2.0),
+        ),
         child: Text(
           optionText,
           style: const TextStyle(
-              color: Color(0xFF5177EE),
-              fontSize: 24,
-              fontWeight: FontWeight.bold),
+            fontSize: 20.0,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+          textAlign: TextAlign.center,
         ),
       ),
     );
