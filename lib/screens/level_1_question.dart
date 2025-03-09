@@ -1,6 +1,7 @@
 import 'package:flashcard_quiz1/components/cross_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flashcard_quiz1/components/options.dart';
+import 'package:flashcard_quiz1/components/db_helper.dart';
 import 'dart:async';
 
 class level_1_question extends StatefulWidget {
@@ -11,9 +12,23 @@ class level_1_question extends StatefulWidget {
 }
 
 class _level_1_questionState extends State<level_1_question> {
-  int currentQuestion = 5;
-  String correctAnswer = "Paris";
+  List<Map<String, dynamic>> questions = [];
+  int currentQuestionIndex = 0;
   String? selectedAnswer;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadQuestions();
+  }
+
+  Future<void> _loadQuestions() async {
+    List<Map<String, dynamic>> fetchedQuestions =
+    await DatabaseHelper.getQuestionsByLevel(1);
+    setState(() {
+      questions = fetchedQuestions;
+    });
+  }
 
   void checkAnswer(String answer) {
     setState(() {
@@ -22,8 +37,8 @@ class _level_1_questionState extends State<level_1_question> {
 
     Future.delayed(const Duration(seconds: 1), () {
       setState(() {
-        if (currentQuestion < 10) {
-          currentQuestion++;
+        if (currentQuestionIndex < questions.length - 1) {
+          currentQuestionIndex++;
           selectedAnswer = null;
         } else {
           Navigator.pop(context);
@@ -34,6 +49,13 @@ class _level_1_questionState extends State<level_1_question> {
 
   @override
   Widget build(BuildContext context) {
+    if (questions.isEmpty) {
+      return Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    var currentQuestion = questions[currentQuestionIndex];
     return Scaffold(
       body: Container(
         width: MediaQuery.of(context).size.width,
@@ -64,7 +86,7 @@ class _level_1_questionState extends State<level_1_question> {
                     shape: BoxShape.circle,
                   ),
                   child: Text(
-                    "$currentQuestion",
+                    "${currentQuestionIndex + 1}",
                     style: const TextStyle(
                         color: Colors.white,
                         fontSize: 22.0,
@@ -100,44 +122,37 @@ class _level_1_questionState extends State<level_1_question> {
             ),
             const SizedBox(height: 30.0),
             Image.asset("images/starting.png"),
+            const SizedBox(height: 30.0),
             Text(
-              "Question $currentQuestion of 10",
+              "Question ${currentQuestionIndex + 1} of ${questions.length}",
               style: const TextStyle(
                   color: Color(0xFFFFFFE6),
                   fontSize: 22.0,
                   fontWeight: FontWeight.w500),
             ),
-            const Text(
-              "Q: What is the capital of France?",
-              style: TextStyle(
+            const SizedBox(height: 30.0),
+            Text(
+              "Q: ${currentQuestion['question']}",
+              style: const TextStyle(
                   color: Colors.white,
                   fontSize: 28.0,
                   fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 30.0),
-            Options(
-              optionText: "Berlin",
-              color: selectedAnswer == "Berlin"
-                  ? (correctAnswer == "Berlin" ? Colors.green : Colors.red)
-                  : Colors.white,
-              onTap: () => checkAnswer("Berlin"),
-            ),
-            const SizedBox(height: 30.0),
-            Options(
-              optionText: "Madrid",
-              color: selectedAnswer == "Madrid"
-                  ? (correctAnswer == "Madrid" ? Colors.green : Colors.red)
-                  : Colors.white,
-              onTap: () => checkAnswer("Madrid"),
-            ),
-            const SizedBox(height: 30.0),
-            Options(
-              optionText: "Paris",
-              color: selectedAnswer == "Paris"
-                  ? (correctAnswer == "Paris" ? Colors.green : Colors.red)
-                  : Colors.white,
-              onTap: () => checkAnswer("Paris"),
-            ),
+            const SizedBox(height: 20.0),
+            ...['option1', 'option2', 'option3'].map<Widget>((option) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 20.0),
+                child: Options(
+                  optionText: currentQuestion[option],
+                  color: selectedAnswer == currentQuestion[option]
+                      ? (currentQuestion['correctOption'] == option
+                      ? Colors.green
+                      : Colors.red)
+                      : Colors.transparent,
+                  onTap: () => checkAnswer(currentQuestion[option]),
+                ),
+              );
+            }).toList(),
           ],
         ),
       ),
